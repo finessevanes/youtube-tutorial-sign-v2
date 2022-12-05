@@ -5,11 +5,13 @@ import "./App.css";
 
 const web3Modal = new Web3Modal({
   projectId: process.env.REACT_APP_PROJECT_ID,
-  standaloneChains: ["eip155:5"]
-})
+  standaloneChains: ["eip155:5"],
+});
 
 function App() {
   const [signClient, setSignClient] = useState();
+  const [sessions, setSessions] = useState([]);
+  const [accounts, setAccounts] = useState([]);
 
   async function createClient() {
     try {
@@ -30,18 +32,30 @@ function App() {
         eip155: {
           chains: ["eip155:5"],
           methods: ["eth_sendTransaction"],
-          events: ["connect", "disconnect"]
-        }
+          events: ["connect", "disconnect"],
+        },
       };
 
-      const { uri } = await signClient.connect({
-        requiredNamespaces: proposalNamespace
-      })
+      const { uri, approval } = await signClient.connect({
+        requiredNamespaces: proposalNamespace,
+      });
 
-      if (uri){
-        web3Modal.openModal({ uri })
+      if (uri) {
+        web3Modal.openModal({ uri });
+        const sessionNamespace = await approval();
+        onSessionConnect(sessionNamespace);
+        web3Modal.closeModal()
       }
+    } catch (e) {
+      console.log(e);
+    }
+  }
 
+  async function onSessionConnect(session) {
+    if (!session) throw Error("session doesn't exist");
+    try {
+      setSessions(session);
+      setAccounts(session.namespaces.eip155.accounts[0].slice(9));
     } catch (e) {
       console.log(e);
     }
@@ -56,9 +70,13 @@ function App() {
   return (
     <div className="App">
       <h1>Youtube Tutorial</h1>
-      <button onClick={handleConnect} disabled={!signClient}>
-        Connect
-      </button>
+      {accounts.length ? (
+        <p>{accounts}</p>
+      ) : (
+        <button onClick={handleConnect} disabled={!signClient}>
+          Connect
+        </button>
+      )}
     </div>
   );
 }
