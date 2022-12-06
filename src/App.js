@@ -12,6 +12,7 @@ function App() {
   const [signClient, setSignClient] = useState();
   const [sessions, setSessions] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [txnHash, setTxnHash] = useState();
 
   async function createClient() {
     try {
@@ -107,6 +108,7 @@ function App() {
         },
         chainId: "eip155:5"
       })
+      setTxnHash(result)
     } catch (e) {
       console.log(e);
     }
@@ -131,6 +133,7 @@ function App() {
           <p>{accounts}</p>
           <button onClick={handleDisconnect}>Disconnect</button>
           <button onClick={handleSend}>Send</button>
+          { txnHash && <p>View your transaction <a href={`https://goerli.etherscan.io/tx/${txnHash}`} target="_blank" rel="noreferrer">here</a>!</p>}
         </>
       ) : (
         <button onClick={handleConnect} disabled={!signClient}>
