@@ -19,6 +19,7 @@ function App() {
         projectId: process.env.REACT_APP_PROJECT_ID,
       });
       setSignClient(client);
+      await subscribeToEvents(client);
     } catch (e) {
       console.log(e);
     }
@@ -44,7 +45,7 @@ function App() {
         web3Modal.openModal({ uri });
         const sessionNamespace = await approval();
         onSessionConnect(sessionNamespace);
-        web3Modal.closeModal()
+        web3Modal.closeModal();
       }
     } catch (e) {
       console.log(e);
@@ -61,6 +62,38 @@ function App() {
     }
   }
 
+  async function handleDisconnect() {
+    try {
+      await signClient.disconnect({
+        topic: sessions.topic,
+        code: 6000,
+        message: "User disconnected",
+      });
+      reset();
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  async function subscribeToEvents(client) {
+    if (!client)
+      throw Error("No events to subscribe to b/c the client does not exist");
+
+    try {
+      client.on("session_delete", () => {
+        console.log("user disconnected the session from their wallet");
+        reset();
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  const reset = () => {
+    setAccounts([]);
+    setSessions([]);
+  };
+
   useEffect(() => {
     if (!signClient) {
       createClient();
@@ -71,7 +104,10 @@ function App() {
     <div className="App">
       <h1>Youtube Tutorial</h1>
       {accounts.length ? (
-        <p>{accounts}</p>
+        <>
+          <p>{accounts}</p>
+          <button onClick={handleDisconnect}>Disconnect</button>
+        </>
       ) : (
         <button onClick={handleConnect} disabled={!signClient}>
           Connect
