@@ -89,6 +89,29 @@ function App() {
     }
   }
 
+  async function handleSend() {
+    try {
+      const tx = {
+        from: accounts,
+        to: "0xBDE1EAE59cE082505bB73fedBa56252b1b9C60Ce",
+        data: "0x",
+        gasPrice: "0x029104e28c",
+        gasLimit: "0x5208",
+        value: "0x00",
+      };
+      const result = await signClient.request({
+        topic: sessions.topic,
+        request: {
+          method: "eth_sendTransaction",
+          params: [tx]
+        },
+        chainId: "eip155:5"
+      })
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   const reset = () => {
     setAccounts([]);
     setSessions([]);
@@ -107,6 +130,7 @@ function App() {
         <>
           <p>{accounts}</p>
           <button onClick={handleDisconnect}>Disconnect</button>
+          <button onClick={handleSend}>Send</button>
         </>
       ) : (
         <button onClick={handleConnect} disabled={!signClient}>
